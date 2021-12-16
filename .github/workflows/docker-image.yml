@@ -14,5 +14,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag aliyun-ddns:$(date +%s)
+      
+    - uses: mr-smithers-excellent/docker-build-push@v5
+      with:
+        image: aliyun-ddns
+        registry: ghcr.io
+        username: ${{ secrets.GHCR_USERNAME }}
+        password: ${{ secrets.GHCR_TOKEN }}
