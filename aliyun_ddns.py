@@ -94,12 +94,21 @@ def get_public_ip():
     raise Exception("Can not get public ip")
 
 
+def environ_or_required(key):
+    return (
+        {'default': os.environ.get(key)} if os.environ.get(key)
+        else {'required': True}
+    )
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('client_id',
-                        help='client id of aliyun sdks')
-    parser.add_argument('client_secret',
-                        help='client secret of aliyun skds')
+    parser.add_argument('-i', '--client_id',
+                        help='client id of aliyun sdks',
+                        **environ_or_required('CLIENT_ID'))
+    parser.add_argument('-s', '--client_secret',
+                        help='client secret of aliyun skds',
+                        **environ_or_required('CLIENT_SECRET'))
     args = parser.parse_args()
     try:
         global client
