@@ -7,6 +7,7 @@ from aliyunsdkalidns.request.v20150109.AddDomainRecordRequest import AddDomainRe
 from aliyunsdkcore.acs_exception.exceptions import ServerException
 from aliyunsdkcore.acs_exception.exceptions import ClientException
 from aliyunsdkcore.client import AcsClient
+import os
 import ipaddress
 import requests
 import json
