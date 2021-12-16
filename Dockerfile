@@ -1,6 +1,7 @@
 FROM python:3.7.3
 RUN apt-get update && apt-get -y install cron vim
 WORKDIR /app
+COPY requirements.txt /app/requirements.txt
 RUN pip install -r requirements.txt
 COPY crontab /etc/cron.d/crontab
 COPY aliyun_ddns.py /app/aliyun_ddns.py
