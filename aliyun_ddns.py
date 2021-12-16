@@ -25,10 +25,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-MY_DOMAIN = 'rwecho.top'
-MY_Record_RR = "myhome"
-
-
 def is_ip_address(address):
     try:
         ip = ipaddress.ip_address(address)
@@ -37,7 +33,7 @@ def is_ip_address(address):
         return False
 
 
-def add_domain_record(rr: str, ip: str):
+def add_domain_record(my_domain: str, rr: str, ip: str):
     if not is_ip_address(ip):
         raise ValueError(f"IP {ip} is required.")
 
@@ -46,7 +42,7 @@ def add_domain_record(rr: str, ip: str):
     request.set_Value(ip)
     request.set_Type("A")
     request.set_RR(rr)
-    request.set_DomainName(MY_DOMAIN)
+    request.set_DomainName(my_domain)
     response = client.do_action_with_exception(request)
     print(str(response, encoding='utf-8'))
 
@@ -60,17 +56,18 @@ def update_domain_record(rr: str, ip: str):
     response = client.do_action_with_exception(request)
 
 
-def get_ip_by_rr(rr: str):
-    item = next((x for x in get_domain_records() if x["rr"] == rr), "")
+def get_ip_by_rr(my_domain: str, rr: str):
+    item = next((x for x in get_domain_records(
+        my_domain) if x["rr"] == rr), "")
     if item:
         return item["ip"]
     return None
 
 
-def get_domain_records():
+def get_domain_records(my_domain: str):
     request = DescribeDomainRecordsRequest()
     request.set_accept_format('json')
-    request.set_DomainName(MY_DOMAIN)
+    request.set_DomainName(my_domain)
     request.set_PageSize(100)
     response = client.do_action_with_exception(request)
     response_data = json.loads(response.decode("utf-8"))
@@ -109,21 +106,31 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--client_secret',
                         help='client secret of aliyun skds',
                         **environ_or_required('CLIENT_SECRET'))
+
+    parser.add_argument('-d', '--my_domain',
+                        help='my domain of aliyun',
+                        **environ_or_required('MY_DOMAIN'))
+
+    parser.add_argument('-r', '--rr',
+                        help='record rr of aliyun domain',
+                        **environ_or_required('RR'))
     args = parser.parse_args()
     try:
+        rr = args.rr
+        my_domain = args.my_domain
         global client
         client = AcsClient(args.client_id,
                            args.client_secret, 'cn-hangzhou')
         ip = get_public_ip()
         logger.info(f"my public ip: {ip}")
-        rr_ip = get_ip_by_rr(MY_Record_RR)
-        logger.info(f"rr {MY_Record_RR} value is {rr_ip}")
+        rr_ip = get_ip_by_rr(my_domain, rr)
+        logger.info(f"rr {rr} value is {rr_ip}")
         if not rr_ip:
-            add_domain_record(MY_Record_RR, ip)
-            logger.info(f"add new record for {MY_Record_RR} {ip}")
+            add_domain_record(my_domain, rr, ip)
+            logger.info(f"add new record for {rr} {ip}")
         elif rr_ip != ip:
-            update_domain_record(MY_Record_RR, ip)
-            logger.info(f"update rr {MY_Record_RR} with ip {ip}")
+            update_domain_record(rr, ip)
+            logger.info(f"update rr {rr} with ip {ip}")
         else:
             logger.debug(f"ip {ip} stay the same.")
     except Exception as exception:

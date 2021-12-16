@@ -2,22 +2,21 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-      
-    - uses: mr-smithers-excellent/docker-build-push@v5
-      with:
-        image: aliyun-ddns
-        registry: ghcr.io
-        username: ${{ secrets.GHCR_USERNAME }}
-        password: ${{ secrets.GHCR_TOKEN }}
+      - uses: actions/checkout@v2
+
+      - uses: mr-smithers-excellent/docker-build-push@v5
+        with:
+          image: aliyun-ddns
+          tags: latest
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_TOKEN }}
