@@ -1,0 +1,2 @@
+#run python script every minutes
+* * * * * python /app/aliyun_ddns.py > /proc/1/fd/1 2>/proc/1/fd/2
