@@ -1,4 +1,4 @@
-FROM python:3.7.3
+FROM python:3.10.1-slim-buster
 RUN apt-get update && apt-get -y install cron vim
 WORKDIR /app
 COPY requirements.txt /app/requirements.txt
