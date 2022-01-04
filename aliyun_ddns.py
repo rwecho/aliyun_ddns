@@ -48,11 +48,13 @@ def add_domain_record(my_domain: str, rr: str, ip: str):
     print(str(response, encoding='utf-8'))
 
 
-def update_domain_record(rr: str, ip: str):
+def update_domain_record(rr: str, ip: str, id: str):
     if not is_ip_address(ip):
         raise ValueError(f"IP {ip} is required.")
     request = UpdateDomainRecordRequest()
+    request.set_RecordId(id)
     request.set_RR(rr)
+    request.set_Type('A')
     request.set_Value(ip)
     response = client.do_action_with_exception(request)
 
@@ -61,7 +63,7 @@ def get_ip_by_rr(my_domain: str, rr: str):
     item = next((x for x in get_domain_records(
         my_domain) if x["rr"] == rr), "")
     if item:
-        return item["ip"]
+        return (item["ip"], item["id"])
     return None
 
 
@@ -77,10 +79,12 @@ def get_domain_records(my_domain: str):
     result = []
     for record in records:
         rr = record['RR']
+        id = record['RecordId']
         ip = record['Value']
         result.append({
             "rr": rr,
-            "ip": ip
+            "ip": ip,
+            'id': id
         })
     return result
 
@@ -124,13 +128,18 @@ if __name__ == "__main__":
                            args.client_secret, 'cn-hangzhou')
         ip = get_public_ip()
         logger.info(f"my public ip: {ip}")
-        rr_ip = get_ip_by_rr(my_domain, rr)
+        (rr_ip, rr_id) = get_ip_by_rr(my_domain, rr)
         logger.info(f"rr {rr} value is {rr_ip}")
+
         if not rr_ip:
             add_domain_record(my_domain, rr, ip)
             logger.info(f"add new record for {rr} {ip}")
         elif rr_ip != ip:
-            update_domain_record(rr, ip)
+            try:
+                update_domain_record(rr, ip, rr_id)
+            except Exception as exception:
+                if exception.error_code != "DomainRecordDuplicate":
+                    raise exception
             logger.info(f"update rr {rr} with ip {ip}")
         else:
             logger.debug(f"ip {ip} stay the same.")
